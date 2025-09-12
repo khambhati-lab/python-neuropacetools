@@ -1,0 +1,38 @@
+[project]
+name = "neuropacetools"
+version = "0.1.0"
+description = "neuropacetools"
+authors = [{name = "Ankit N. Khambhati", email = "akhambhati@gmail.com"}]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/khambhati-lab/python-neuropacetools"
+repository = "https://github.com/khambhati-lab/python-neuropacetools"
+documentation = "https://python-neuropacetools.readthedocs.io"
+packages = [
+  { include = "neuropacetools", from = "src" },
+]
+classifiers = [
+  "Development Status :: 2 - Alpha",
+]
+requires-python = ">=3.13"
+dependencies = [
+    "baseobjects",
+    "classversioning",
+    "h5py>=3.14.0",
+    "hdf5objects",
+    "numpy>=2.3.2",
+]
+
+[tool.uv.sources]
+baseobjects = { git = "ssh://git@github.com/AnthonyTechnologies/python-baseobjects.git" }
+classversioning = { git = "ssh://git@github.com/AnthonyTechnologies/python-classversioning.git" }
+hdf5objects = { git = "ssh://git@github.com/AnthonyTechnologies/python-hdf5objects.git" }
+
+[dependency-groups]
+dev = [
+    "ipython>=9.4.0",
+]
+
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"
