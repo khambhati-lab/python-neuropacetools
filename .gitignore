@@ -8,3 +8,8 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Raw Data or Test Data
+*.npz
+*.hdf5
+*.h5
