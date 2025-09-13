@@ -17,6 +17,7 @@ classifiers = [
 requires-python = ">=3.13"
 dependencies = [
     "baseobjects",
+    "blockobjects",
     "classversioning",
     "h5py>=3.14.0",
     "hdf5objects",
@@ -27,6 +28,7 @@ dependencies = [
 baseobjects = { git = "ssh://git@github.com/AnthonyTechnologies/python-baseobjects.git" }
 classversioning = { git = "ssh://git@github.com/AnthonyTechnologies/python-classversioning.git" }
 hdf5objects = { git = "ssh://git@github.com/AnthonyTechnologies/python-hdf5objects.git" }
+blockobjects = { git = "ssh://git@github.com/AnthonyTechnologies/python-blockobjects.git", branch = "v0.1.0"}
 
 [dependency-groups]
 dev = [
