@@ -22,8 +22,11 @@ from blockobjects import BaseBlock
 import numpy as np
 
 # Local Packages #
-from ..neuropacehdf5 import NEUROPACEHDF5
+from ...neuropacehdf5 import NEUROPACEHDF5
 
 
 # Definitions #
 # Classes #
+class NEUROPACEHDF5Writer(BaseBlock):
+    pass
+
