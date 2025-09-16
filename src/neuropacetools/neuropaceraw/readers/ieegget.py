@@ -24,20 +24,15 @@ from typing import Union
 
 # Third-Party Packages #
 import numpy as np
+from dspobjects.time import nanostamp
 
 # Local Packages #
-from .ieegcat import ieegcat, CatalogEntry
+from .catalogentry import CatalogEntry
+from .ieegrecord import IEEGRecord
 from .ieegdat import ieegdat
 
 
 # Definitions #
-# Classes #
-class IEEGRecord(NamedTuple):
-    signal: np.array
-    timestamps: np.array
-    channels: np.array
-    catalog_entry: CatalogEntry
-
 # Functions #
 def ieegget(
         path: str | pathlib.Path,
@@ -59,7 +54,7 @@ def ieegget(
     data_arr = ieegdat(path, n_chan, n_sample)
 
     # Construct a timestamp vector
-    td_vec = np.array([timedelta(seconds=i/record.sampling_rate) for i in range(n_sample)])
+    td_vec = np.array([nanostamp(i/record.sampling_rate) for i in range(n_sample)])
     ts_arr = record.timestamp_start + td_vec
 
     # Construct a channel label vector
