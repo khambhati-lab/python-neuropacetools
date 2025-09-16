@@ -14,6 +14,8 @@ __email__ = __email__
 
 # Imports #
 # Local Packages #
+from .catalogentry import CatalogEntry
 from .ieegdat import ieegdat
 from .ieegcat import ieegcat
 from .ieegget import ieegget
+from .ieegrecord import IEEGRecord
