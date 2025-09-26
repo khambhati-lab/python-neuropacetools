@@ -148,7 +148,7 @@ class NEUROPACEHDF5Writer(BaseBlock):
         # Clear Stored record info
         self.current_ieeg_record = None
 
-    # Writing
+    # Writing Methods
     def set_data_slice(
         self,
         data,
@@ -242,6 +242,7 @@ class NEUROPACEHDF5Writer(BaseBlock):
         ieeg_record: IEEGRecord,
         file_path: Path,
         file_remake: bool,
+        write_method: str = "append_data",
         *args: Any,
         **kwargs: Any
     ) -> Any:
@@ -252,6 +253,7 @@ class NEUROPACEHDF5Writer(BaseBlock):
             ieeg_record: Information to write to the file.
             file_path: Path of file to be written.
             file_remake: Remake existing file.
+            write_method: Class method name to use for writing data.
             *args: Additional positional arguments.
             **kwargs: Additional keyword arguments.
 
@@ -271,8 +273,14 @@ class NEUROPACEHDF5Writer(BaseBlock):
         self.current_ieeg_record = ieeg_record
 
         # Write Data
-        raise NotImplementedError("Cannot write data without method.")
+        method = getattr(self, write_method)
+        method(
+            ieeg_record.signal,
+            ieeg_record.timestamps
+        )
 
+        # Return File Info
+        return ieeg_record
 
     # Teardown
     async def teardown(
