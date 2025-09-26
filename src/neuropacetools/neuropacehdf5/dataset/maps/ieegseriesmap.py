@@ -30,15 +30,15 @@ class IEEGSeriesMap(BaseTimeSeriesMap):
 
     default_attribute_names: Mapping[str, str] = BaseTimeSeriesMap.default_attribute_names | {
         "units": "units",
-        "catalog_ecog_type": "catalog_ecog_type",
-        "catalog_ecog_trigger": "catalog_ecog_trigger",
-        "catalog_ecog_trigger_timestamp": "catalog_ecog_trigger_timestamp"
+        "neuropace_ecog_type": "neuropace_ecog_type",
+        "neuropace_ecog_trigger": "neuropace_ecog_trigger",
+        "neuropace_ecog_trigger_timestamp": "neuropace_ecog_trigger_timestamp"
     }
     default_attributes: Mapping[str, Any] = BaseTimeSeriesMap.default_attributes | {
             "units": "digital_counts",
-            "catalog_ecog_type": "",
-            "catalog_ecog_trigger": "",
-            "catalog_ecog_trigger_timestamp": 0}
+            "neuropace_ecog_type": "",
+            "neuropace_ecog_trigger": "",
+            "neuropace_ecog_trigger_timestamp": 0}
     
     default_axis_maps: list[dict[str, Any], ...] = [
         {"time_axis": TimeAxisMap()},
