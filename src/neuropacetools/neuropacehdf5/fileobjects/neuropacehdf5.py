@@ -36,10 +36,11 @@ class NEUROPACEHDF5Map(HDF5EEGMap):
             "start_id": "start_id",
             "end_id": "end_id",
 
-            "catalog_patient_id": "catalog_patient_id",
-            "catalog_pdms_id": "catalog_pdms_id",
-            "catalog_device_id": "catalog_device_id",
-            "catalog_filename_id": "catalog_filename_id",
+            "neuropace_patient_id": "neuropace_patient_id",
+            "neuropace_device_id": "neuropace_device_id",
+            "neuropace_filename_id": "neuropace_filename_id",
+            "neuropace_ecog_type": "neuropace_ecog_type",
+            "neuropace_ecog_trigger": "neuropace_ecog_trigger"
     }
 
     default_attributes = HDF5EEGMap.default_attributes | {
@@ -47,10 +48,11 @@ class NEUROPACEHDF5Map(HDF5EEGMap):
             "sex": "U",
             "species": "Homo Sapien",
             
-            "catalog_patient_id": "",
-            "catalog_pdms_id": 0,
-            "catalog_device_id": 0,
-            "catalog_filename_id": "",
+            "neuropace_patient_id": "",
+            "neuropace_device_id": 0,
+            "neuropace_filename_id": "",
+            "neuropace_ecog_type": "",
+            "neuropace_ecog_trigger": ""
     }
 
     default_map_names = {"data": "iEEG"}
