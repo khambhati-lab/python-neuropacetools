@@ -13,8 +13,8 @@ wheels = [
 
 [[package]]
 name = "baseobjects"
-version = "1.11.1"
-source = { git = "ssh://git@github.com/AnthonyTechnologies/python-baseobjects.git#b3d3d385ffa54ffc8cf9a98434faf3d6a9977122" }
+version = "1.12.0"
+source = { git = "ssh://git@github.com/AnthonyTechnologies/python-baseobjects.git?branch=v1.12.0#316357ecd08c6698d8949ac4a480e88f422abbe8" }
 dependencies = [
     { name = "bidict" },
     { name = "click" },
@@ -90,7 +90,7 @@ wheels = [
 [[package]]
 name = "dspobjects"
 version = "0.4.0"
-source = { registry = "https://pypi.org/simple" }
+source = { git = "ssh://git@github.com/AnthonyTechnologies/python-dspobjects.git#825e67ce407dac808982162aca529862138dd73e" }
 dependencies = [
     { name = "baseobjects" },
     { name = "click" },
@@ -100,10 +100,6 @@ dependencies = [
     { name = "plotly" },
     { name = "tomli" },
     { name = "xlrd" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d6/28/46153734839fed76fd1a988a1afb91d63d639e41d6b13ed806c7a3d26c1a/dspobjects-0.4.0.tar.gz", hash = "sha256:00e5a7e53cc451d9ae1ac46ebb9ede3f7feeb7525cad458aa286753c42671a31", size = 27368 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f3/17/dbd2960e6ad8de9d78f2ec47505e5aebfe757351643e5b3f1a50a5690af3/dspobjects-0.4.0-py3-none-any.whl", hash = "sha256:38e00e4b029ec4f1115d73422d7579d72ba8285462626b62344b71b1ff9f2ff2", size = 47704 },
 ]
 
 [[package]]
@@ -142,8 +138,8 @@ wheels = [
 
 [[package]]
 name = "hdf5objects"
-version = "0.5.0"
-source = { git = "ssh://git@github.com/AnthonyTechnologies/python-hdf5objects.git#e166955db7c52f736bcf072a648e69432796aca1" }
+version = "0.6.0"
+source = { git = "ssh://git@github.com/AnthonyTechnologies/python-hdf5objects.git?branch=v0.6.0#6deac4d805e6e913b84ca8286a2e25b065aa4afe" }
 dependencies = [
     { name = "baseobjects" },
     { name = "bidict" },
@@ -228,9 +224,11 @@ dependencies = [
     { name = "baseobjects" },
     { name = "blockobjects" },
     { name = "classversioning" },
+    { name = "dspobjects" },
     { name = "h5py" },
     { name = "hdf5objects" },
     { name = "numpy" },
+    { name = "proxyarrays" },
 ]
 
 [package.dev-dependencies]
@@ -240,12 +238,14 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "baseobjects", git = "ssh://git@github.com/AnthonyTechnologies/python-baseobjects.git" },
+    { name = "baseobjects", git = "ssh://git@github.com/AnthonyTechnologies/python-baseobjects.git?branch=v1.12.0" },
     { name = "blockobjects", git = "ssh://git@github.com/AnthonyTechnologies/python-blockobjects.git?branch=v0.1.0" },
     { name = "classversioning", git = "ssh://git@github.com/AnthonyTechnologies/python-classversioning.git" },
+    { name = "dspobjects", git = "ssh://git@github.com/AnthonyTechnologies/python-dspobjects.git" },
     { name = "h5py", specifier = ">=3.14.0" },
-    { name = "hdf5objects", git = "ssh://git@github.com/AnthonyTechnologies/python-hdf5objects.git" },
+    { name = "hdf5objects", git = "ssh://git@github.com/AnthonyTechnologies/python-hdf5objects.git?branch=v0.6.0" },
     { name = "numpy", specifier = ">=2.3.2" },
+    { name = "proxyarrays", git = "ssh://git@github.com/AnthonyTechnologies/python-proxyarrays.git?branch=v0.7.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -399,17 +399,13 @@ wheels = [
 
 [[package]]
 name = "proxyarrays"
-version = "0.6.0"
-source = { registry = "https://pypi.org/simple" }
+version = "0.7.0"
+source = { git = "ssh://git@github.com/AnthonyTechnologies/python-proxyarrays.git?branch=v0.7.0#d22568a47c06d70a0aaad17ba1597799bf63fabe" }
 dependencies = [
     { name = "baseobjects" },
     { name = "dspobjects" },
     { name = "numpy" },
     { name = "scipy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d9/1f/941861c0b82de64eb389191b8dbbf4c2af1bada420129b3149871a0732fb/proxyarrays-0.6.0.tar.gz", hash = "sha256:5530c2970f1524c58ca0391893cc3dbe8972a9dbd70d57db9aa203ef55ed0465", size = 61582 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/64/66/e7c9ba8cc8ff3513d91b720906eecb3a09f45f619940d5840878ce323820/proxyarrays-0.6.0-py3-none-any.whl", hash = "sha256:db8d8d34d113e246e34aff061cb037b7a5ab0661fd5baf752b2264025ad7c172", size = 81427 },
 ]
 
 [[package]]
