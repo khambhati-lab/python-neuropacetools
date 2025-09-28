@@ -109,41 +109,49 @@ class NEUROPACEHDF5Writer(BaseBlock):
             self.file.close()
 
         # Open File
-        match file_remake:
-            case True:
-                Path(file_path).unlink()
-                file_remake = False
-            case False:
-                file_remake = False
+        file_remake = True if not Path(file_path).exists() else file_remake
 
-        self.file = self.file_type(**({
+        if file_remake:
+            f_args = {
+                "file": file_path,
+                "mode": "w",
+                "create": True,
+                "construct": True
+            }
+            self.file = self.file_type(**f_args)
+
+            # Fill out file-level attributes
+            self.file.attributes["start_id"] = ieeg_record.timestamps[0]
+            self.file.attributes["end_id"] = ieeg_record.timestamps[-1]
+            self.file.attributes["subject_id"] = ieeg_record.catalog_entry.initials
+            self.file.attributes["neuropace_patient_id"] = ieeg_record.catalog_entry.patient_id
+            self.file.attributes["neuropace_device_id"] = ieeg_record.catalog_entry.device_id
+            self.file.attributes["neuropace_filename_id"] = ieeg_record.catalog_entry.filename
+            self.file.attributes["neuropace_ecog_type"] = ieeg_record.catalog_entry.ecog_type
+            self.file.attributes["neuropace_ecog_trigger"] = ieeg_record.catalog_entry.ecog_trigger
+
+            # Fill out time axis level attributes
+            self.file.time_axis.components["axis"].set_time_zone(ieeg_record.catalog_entry.timestamp_tz)
+            self.file.time_axis.components["axis"].sample_rate = ieeg_record.catalog_entry.sampling_rate
+
+            # Set Single Write Multiple Read
+            self.file.swmr_mode = True
+
+            self.file.flush()
+            self.file.close()
+
+        # Open the file
+        f_args = {
             "file": file_path,
-            "mode": "w",
-            "create": True,
-            "construct": True
-            })
-        )
-
-        # Fill out file-level attributes
-        self.file.attributes["start_id"] = ieeg_record.timestamps[0]
-        self.file.attributes["end_id"] = ieeg_record.timestamps[-1]
-        self.file.attributes["subject_id"] = ieeg_record.catalog_entry.initials
-        self.file.attributes["neuropace_patient_id"] = ieeg_record.catalog_entry.patient_id
-        self.file.attributes["neuropace_device_id"] = ieeg_record.catalog_entry.device_id
-        self.file.attributes["neuropace_filename_id"] = ieeg_record.catalog_entry.filename
-        self.file.attributes["neuropace_ecog_type"] = ieeg_record.catalog_entry.ecog_type
-        self.file.attributes["neuropace_ecog_trigger"] = ieeg_record.catalog_entry.ecog_trigger
-
-        # Fill out time axis level attributes
-        self.file.time_axis.components["axis"].set_time_zone(ieeg_record.catalog_entry.timestamp_tz)
-        self.file.time_axis.components["axis"].sample_rate = ieeg_record.catalog_entry.sampling_rate
+            "mode": "r+",
+            "create": False,
+            "construct": False
+        }
+        self.file = self.file_type(**f_args)
 
         # Update Stored File Kwargs
         self.file_path = None
         self.file_remake = None
-
-        # Set Single Write Multiple Read
-        self.file.swmr_mode = True
 
         # Clear Stored record info
         self.current_ieeg_record = None
@@ -154,59 +162,46 @@ class NEUROPACEHDF5Writer(BaseBlock):
         data,
         nanostamps,
         slice_: slice,
-        axis: int = 0
     ) -> None:
         # Get Dataset
         dataset = self.file.data
         time_axis = self.file.time_axis
-
-        # Get Slicing
+        t_axis = dataset.attributes['t_axis']
+        c_axis = dataset.attributes['c_axis']
+        
+        # Get File Dims
         file_shape = dataset.shape
-        n_samples = file_shape[axis]
+        n_f_samples = file_shape[t_axis]
+        n_f_channels = file_shape[c_axis]
+
+        # Get Data Dims 
         data_shape = data.shape
-        d_slicing = list(slice(d) for d in data_shape)
-        d_slicing[axis] = slice_
-        d_slicing = tuple(d_slicing)
+        n_d_samples = data_shape[t_axis]
+        n_d_channels = data_shape[c_axis]
 
+        # Fill in missing slice dimensions
+        if slice_ == None or slice_ == [None]:
+            slice_ = [None, None]
+        if slice_[t_axis] is None:
+            slice_[t_axis] = slice(0, n_d_samples)
+        if slice_[c_axis] is None:
+            slice_[c_axis] = slice(0, n_d_channels)
+        
         # Resize Data if needed
-        new_time_shape = (
-            n_sample if slice_ is None or slice_.stop is None else
-                max(n_samples, slice_.stop),
-        )
-        new_data_shape = list(
-            max(f, d) for f, d in zip(file_shape, data_shape)
-        )
-        new_data_shape[axis] = new_time_shape[0]
-        if tuple(new_data_shape) != file_shape:
-            dataset.resize(new_data_shape)
-            if new_time_shape[0] > time_axis.shape[0]:
-                time_axis.resize(new_time_shape)
+        new_time_shape = max(n_f_samples, slice_[t_axis].stop),
+        new_file_shape = [None, None]
+        new_file_shape[t_axis] = new_time_shape[0]
+        new_file_shape[c_axis] = max(n_f_channels, slice_[c_axis].stop) 
+       
+        if tuple(new_file_shape) != file_shape:
+            dataset.resize(new_file_shape)
+            time_axis.resize(new_time_shape)
 
         # Update Data
-        time_axis[slice_] = nanostamps
-        dataset[d_slicing] = data
+        time_axis[slice_[t_axis]] = nanostamps
+        dataset[*slice_] = data
         self.file.flush()
-
-    def append_data(self, data, nanostamps) -> None:
-        # Get File's Dataset
-        dataset = self.file.data
-
-        # Get Slicing
-        d_slicing = [slice(None, i) for i in data.shape]
-        d_slicing[0] = slice(dataset.shape[0], data.shape[0])
-        d_slicing = tuple(d_slicing)
-        n_slicing = slice(self.file.time_axis.shape[0], data.shape[0])
-
-        # Update Data
-        dataset.append(
-            data[d_slicing],
-            component_kwargs={
-                "timeseries": {"data": nanostamps[n_slicing]}
-            }
-        )
-        self.file.flush()
-
-
+    
     # IO
     def build_io(
         self,
@@ -242,7 +237,7 @@ class NEUROPACEHDF5Writer(BaseBlock):
         ieeg_record: IEEGRecord,
         file_path: Path,
         file_remake: bool,
-        write_method: str = "append_data",
+        slice_: slice = None,
         *args: Any,
         **kwargs: Any
     ) -> Any:
@@ -253,7 +248,6 @@ class NEUROPACEHDF5Writer(BaseBlock):
             ieeg_record: Information to write to the file.
             file_path: Path of file to be written.
             file_remake: Remake existing file.
-            write_method: Class method name to use for writing data.
             *args: Additional positional arguments.
             **kwargs: Additional keyword arguments.
 
@@ -273,10 +267,10 @@ class NEUROPACEHDF5Writer(BaseBlock):
         self.current_ieeg_record = ieeg_record
 
         # Write Data
-        method = getattr(self, write_method)
-        method(
+        self.set_data_slice(
             ieeg_record.signal,
-            ieeg_record.timestamps
+            ieeg_record.timestamps,
+            slice_
         )
 
         # Return File Info
