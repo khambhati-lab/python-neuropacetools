@@ -277,7 +277,7 @@ class NEUROPACEHDF5Writer(BaseBlock):
         return ieeg_record
 
     # Teardown
-    async def teardown(
+    def teardown(
         self,
         *args: Any,
         **kwargs: Any
@@ -286,7 +286,7 @@ class NEUROPACEHDF5Writer(BaseBlock):
         if self.file is not None:
             self.file.close()
 
-        await self.outputs.put_item_async(
+        self.outputs.put_item(
             self.signal_io_name,
             {"done_flag": True}
         )

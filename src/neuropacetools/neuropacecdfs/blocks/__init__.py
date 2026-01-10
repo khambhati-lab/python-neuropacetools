@@ -1,9 +1,8 @@
-"""__init__.py
+""" __init__.py
 
 """
 # Package Header #
-from ..header import *
-
+from ...header import *
 
 # Header #
 __author__ = __author__
@@ -14,5 +13,4 @@ __email__ = __email__
 
 # Imports #
 # Local Packages #
-from .fileobjects import *
-from .blocks import *
+from .neuropacecdfscontentsupdater import NEUROPACECDFSContentsUpdater

@@ -24,6 +24,10 @@ dependencies = [
     "h5py>=3.14.0",
     "hdf5objects",
     "numpy>=2.3.2",
+    "sqlalchemy>=2.0.43",
+    "sqlalchemyobjects",
+    "cdfs",
+    "mxbids"
 ]
 
 [tool.uv.sources]
@@ -33,6 +37,9 @@ classversioning = { git = "ssh://git@github.com/AnthonyTechnologies/python-class
 hdf5objects = { git = "ssh://git@github.com/AnthonyTechnologies/python-hdf5objects.git", branch = "v0.6.0"}
 blockobjects = { git = "ssh://git@github.com/AnthonyTechnologies/python-blockobjects.git", branch = "v0.1.0"}
 dspobjects = { git = "ssh://git@github.com/AnthonyTechnologies/python-dspobjects.git" }
+sqlalchemyobjects = { git = "ssh://git@github.com/AnthonyTechnologies/python-sqlalchemyobjects.git", branch = "v0.1.0"}
+cdfs = { git = "ssh://git@github.com/AnthonyTechnologies/python-cdfs.git", branch = "v0.4.0"}
+mxbids = { git = "ssh://git@github.com/AnthonyTechnologies/python-mxbids.git", branch = "v0.3.0"}
 
 [dependency-groups]
 dev = [

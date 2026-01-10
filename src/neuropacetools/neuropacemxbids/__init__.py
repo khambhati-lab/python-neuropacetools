@@ -1,5 +1,5 @@
 """__init__.py
-
+neuropacetools provides tools to work with NeuroPace RNS System data.
 """
 # Package Header #
 from ..header import *
@@ -14,5 +14,5 @@ __email__ = __email__
 
 # Imports #
 # Local Packages #
-from .fileobjects import *
-from .blocks import *
+from .modalities import *
+from .sessions import *

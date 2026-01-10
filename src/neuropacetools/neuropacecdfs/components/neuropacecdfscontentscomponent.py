@@ -1,0 +1,170 @@
+""" neuropacecdfscontentscomponent.py
+
+"""
+# Package Header #
+from ...header import *
+
+# Header #
+__author__ = __author__
+__credits__ = __credits__
+__maintainer__ = __maintainer__
+__email__ = __email__
+
+
+# Imports #
+# Standard Libraries #
+from datetime import datetime, tzinfo
+from pathlib import Path
+from typing import Any
+
+# Third-Party Packages #
+from cdfs.components import CDFSTimeContentsComponent
+from dspobjects.time import Timestamp
+import numpy as np
+from sqlalchemy.orm import Session
+
+# Local Packages #
+from ...neuropacehdf5 import NEUROPACEHDF5, NEUROPACEHDF5Writer
+from ..arrays import NEUROPACEContentsProxy
+from ..blocks import NEUROPACECDFSContentsUpdater
+
+
+# Definitions #
+# Classes #
+class NEUROPACECDFSContentsComponent(CDFSTimeContentsComponent):
+    # Attributes #
+    date_format: str = "%d"
+    time_format: str = "%H~%M~%S"
+
+    data_file_type: type[NEUROPACEHDF5] = NEUROPACEHDF5.get_latest_version_class()
+    proxy_type: type[NEUROPACEContentsProxy] = NEUROPACEContentsProxy
+
+    # Instance Methods #
+    # Contents and Files
+    def correct_contents(
+        self,
+        path: Path | None = None,
+        session: Session | None = None,
+        begin: bool = False,
+    ) -> None:
+        """Corrects the contents of the file.
+
+        Args:
+            path: The path to the file.
+            session: The SQLAlchemy session to apply the modification. Defaults to None.
+            begin: If True, begins a transaction for the operation. Defaults to False.
+        """
+        if path is None:
+            path = self._composite().path
+
+        self.contents_table.correct_contents(session=session, path=path, begin=begin)
+
+    def insert_file_contents(
+        self,
+        path: Path | str,
+        file: NEUROPACEHDF5,
+        update_id: int = 0,
+        session: Session | None = None,
+        begin: bool = False,
+    ) -> None:
+        entry = {
+            "update_id": update_id,
+            "path": path,
+            "shape": file.data.shape,
+            "axis": file.time_axis.axis,
+            "start": file.start_datetime,
+            "end": file.end_datetime,
+            "timezone": file.time_axis.tzinfo,
+            "sample_rate": file.sample_rate,
+            "start_id": file.attributes["start_id"],
+            "end_id": file.attributes["end_id"],
+        }
+        self.contents_table.insert(entry=entry, session=session, begin=begin)
+
+    def generate_file_path(self, start, tz=None, absolute_start=None):
+        composite = self._composite()
+
+        if not isinstance(start, datetime):
+            start = Timestamp(start, tz=tz)
+
+        day_name = "task-clips"
+        day_path = composite.path / day_name
+        day_path.mkdir(exist_ok=True)
+
+        file_name = f"{composite.name}_{day_name}_acq-{start.strftime(f'{self.time_format}.%f')[:-3]}_ieeg.h5"
+
+        return day_path / file_name, Path(f"{day_name}/{file_name}")
+
+    def generate_file_kwargs(self, start, tz: tzinfo | None = None):
+        file_path, _ = self.generate_file_path(start=start, tz=tz)
+        return {"file": file_path, "name": self._composite().name}
+
+    def create_write_packet_info(
+        self,
+        method: str = "",
+        shape: tuple[int, ...] = (),
+        sample_rate: int | float | None = None,
+        start: datetime | float | int | np.dtype | np.ndarray | None = None,
+        end: datetime | float | int | np.dtype | np.ndarray | None = None,
+        tz: tzinfo = None,
+        absolute_start: datetime | float | int | np.dtype | np.ndarray | None = None,
+        start_id: int | None = None,
+        end_id: int | None = None,
+        axis: int = 0,
+        update_id: int = 0,
+        method_kwargs: dict[str, Any] | None = None,
+    ) -> dict:
+        full_path, relative_path = self.generate_file_path(start=start, tz=tz, absolute_start=absolute_start)
+
+        return NEUROPACEHDF5Writer.create_write_packet_info(
+            subject_id=self._composite().name,
+            full_path=full_path.as_posix(),
+            relative_path=relative_path.as_posix(),
+            method=method,
+            shape=shape,
+            sample_rate=sample_rate,
+            start=start,
+            end=end,
+            tz=tz,
+            start_id=start_id,
+            end_id=end_id,
+            axis=axis,
+            update_id=update_id,
+            method_kwargs=method_kwargs,
+        )
+
+    def create_data_file(
+        self,
+        data,
+        nanostamps,
+        sample_rate,
+        tz: tzinfo | None = None,
+        update_id: int = 0,
+        open_: bool = False,
+    ):
+        start = Timestamp(nanostamps[0], tz=tz)
+
+        full_path, relative_path = self.generate_file_path(start=start, tz=tz)
+        f_obj = self.data_file_type(
+            file=full_path,
+            name=self._composite().name,
+            mode="a",
+            create=True,
+            construct=True,
+        )
+        f_obj.time_axis.components["axis"].set_time_zone(tz)
+        f_obj.time_axis.components["axis"].sample_rate = sample_rate
+        f_obj.data.set_data(data, component_kwargs={"timeseries": {"data": nanostamps}})
+
+        self.insert_file_contents(path=relative_path, file=f_obj, update_id=update_id, begin=True)
+
+        if not open_:
+            f_obj.close()
+
+        return f_obj
+
+    def create_data_writer(self, **kwargs) -> NEUROPACEHDF5Writer:
+        return NEUROPACEHDF5Writer(file_type=self.data_file_type, **kwargs)
+
+    def create_contents_updater(self, **kwargs) -> NEUROPACECDFSContentsUpdater:
+        return NEUROPACECDFSContentsUpdater(cdfs=self.composite, **kwargs)
