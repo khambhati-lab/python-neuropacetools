@@ -57,7 +57,11 @@ class NEUROPACEHDF5Map(HDF5EEGMap):
 
     default_map_names = {"data": "iEEG"}
     default_maps = {"data": IEEGSeriesMap(
-        object_kwargs={"shape": (0, 0), "maxshape": (None, None)}
+        object_kwargs={
+            "shape": (0, 0),
+            "maxshape": (None, None),
+            "compression": "gzip",
+            "compression_opts": 9}
         )
     }
 
