@@ -22,7 +22,6 @@ from blockobjects import BaseBlock
 # Local Packages #
 from ..tables import NEUROPACEContentsTableManifestation
 
-
 # Definitions #
 # Classes #
 class NEUROPACECDFSContentsUpdater(BaseBlock):

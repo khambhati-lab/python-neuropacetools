@@ -55,7 +55,7 @@ class NEUROPACEMXBIDSSession(CDFSSession):
         kwargs: The keyword arguments for inheritance.
     """
     default_modalities: ClassVar[dict[str, tuple[type[Modality], dict[str, Any]]]] = {
-        "ct": (CT, {}),
+        #"ct": (CT, {}),
         "ieeg": (IEEGNEUROPACE, {}),
 
     }

@@ -29,6 +29,20 @@ from ...neuropacehdf5 import NEUROPACEHDF5
 # Definitions #
 # Classes #
 class BaseNEUROPACEContentsTableSchema(BaseTimeContentsTableSchema):
+    """
+    Columns
+    -------
+    
+    start_id: The ID of the entry.
+    end_id: The ID of the entry.
+    path: The path of the content. Defaults to an empty string.
+    axis: The axis of the content. Defaults to 0.
+    shape: The shape of the content. Defaults to (0,).
+    timezone: The timezone information. Defaults to None.
+    start: The start time. Defaults to None.
+    end: The end time. Defaults to None.
+    sample_rate: The sample rate of the content. Defaults to None.
+    """
     __mapper_args__ = {"polymorphic_identity": "neuropacecontents"}
     start_id = mapped_column(BigInteger, primary_key=True)
     end_id = mapped_column(BigInteger)
@@ -37,7 +51,12 @@ class BaseNEUROPACEContentsTableSchema(BaseTimeContentsTableSchema):
 
     # Class Methods #
     @classmethod
-    def _correct_contents(cls, session: Session, path: Path, delete_invalid: bool = False) -> None:
+    def _correct_contents(
+        cls,
+        session: Session,
+        path: Path,
+        delete_invalid: bool = False
+    ) -> None:
         last_update_id = cls.get_last_update_id(session=session)
         update_id = 0 if last_update_id is None else last_update_id + 1
 
