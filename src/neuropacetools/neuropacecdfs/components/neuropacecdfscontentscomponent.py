@@ -85,7 +85,11 @@ class NEUROPACECDFSContentsComponent(CDFSTimeContentsComponent):
             "sample_rate": file.sample_rate,
             "tz_offset": int(file.time_axis.components["axis"].tzinfo.utcoffset(None).total_seconds()),
             "start_id": int(file.attributes["start_id"]),
-            "end_id": int(file.attributes["end_id"])
+            "end_id": int(file.attributes["end_id"]),
+            "neuropace_device_id": int(file.attributes["neuropace_device_id"]),
+            "neuropace_ecog_trigger_timestamp": int(file.data.attributes["neuropace_ecog_trigger_timestamp"]),
+            "neuropace_ecog_trigger": file.data.attributes["neuropace_ecog_trigger"],
+            "neuropace_ecog_type": file.data.attributes["neuropace_ecog_type"]
         }
 
     def create_data_writer(self, **kwargs) -> NEUROPACEHDF5Writer:
