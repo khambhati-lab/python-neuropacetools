@@ -130,6 +130,11 @@ class NEUROPACEHDF5Writer(BaseBlock):
             self.file.attributes["neuropace_ecog_type"] = ieeg_record.catalog_entry.ecog_type
             self.file.attributes["neuropace_ecog_trigger"] = ieeg_record.catalog_entry.ecog_trigger
 
+            # Fill out data attributes
+            self.file.data.attributes["neuropace_ecog_type"] = ieeg_record.catalog_entry.ecog_type 
+            self.file.data.attributes["neuropace_ecog_trigger"] = ieeg_record.catalog_entry.ecog_trigger 
+            self.file.data.attributes["neuropace_ecog_trigger_timestamp"] = ieeg_record.catalog_entry.timestamp_trigger
+
             # Fill out time axis level attributes
             self.file.time_axis.components["axis"].set_time_zone(ieeg_record.catalog_entry.timestamp_tz)
             self.file.time_axis.components["axis"].sample_rate = ieeg_record.catalog_entry.sampling_rate
@@ -161,14 +166,16 @@ class NEUROPACEHDF5Writer(BaseBlock):
         self,
         data,
         nanostamps,
+        channels,
         slice_: slice,
     ) -> None:
         # Get Dataset
         dataset = self.file.data
-        time_axis = self.file.time_axis
         t_axis = dataset.attributes['t_axis']
         c_axis = dataset.attributes['c_axis']
-        
+        time_axis = self.file.data.axes[t_axis]["time_axis"]
+        chan_axis = self.file.data.axes[c_axis]["channellabel_axis"]
+      
         # Get File Dims
         file_shape = dataset.shape
         n_f_samples = file_shape[t_axis]
@@ -189,6 +196,7 @@ class NEUROPACEHDF5Writer(BaseBlock):
         
         # Resize Data if needed
         new_time_shape = max(n_f_samples, slice_[t_axis].stop),
+        new_chan_shape = (max(n_f_channels, slice_[c_axis].stop), 2)
         new_file_shape = [None, None]
         new_file_shape[t_axis] = new_time_shape[0]
         new_file_shape[c_axis] = max(n_f_channels, slice_[c_axis].stop) 
@@ -196,9 +204,11 @@ class NEUROPACEHDF5Writer(BaseBlock):
         if tuple(new_file_shape) != file_shape:
             dataset.resize(new_file_shape)
             time_axis.resize(new_time_shape)
+            chan_axis.resize(new_chan_shape)
 
         # Update Data
         time_axis[slice_[t_axis]] = nanostamps
+        chan_axis[slice_[c_axis]] = channels
         dataset[*slice_] = data
         self.file.flush()
     
@@ -270,6 +280,7 @@ class NEUROPACEHDF5Writer(BaseBlock):
         self.set_data_slice(
             ieeg_record.signal,
             ieeg_record.timestamps,
+            np.array([ch.split(' - ') for ch in ieeg_record.channels]),
             slice_
         )
 
