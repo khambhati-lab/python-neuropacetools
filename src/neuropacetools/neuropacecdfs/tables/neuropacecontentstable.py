@@ -51,6 +51,14 @@ class BaseNEUROPACEContentsTableSchema(BaseTimeContentsTableSchema):
     neuropace_ecog_trigger_timestamp = mapped_column(BigInteger)
     neuropace_ecog_trigger = mapped_column(Text)
     neuropace_ecog_type = mapped_column(Text)
+    neuropace_ecog_ch1_cathode = mapped_column(Text)
+    neuropace_ecog_ch1_anode = mapped_column(Text)
+    neuropace_ecog_ch2_cathode = mapped_column(Text)
+    neuropace_ecog_ch2_anode = mapped_column(Text)
+    neuropace_ecog_ch3_cathode = mapped_column(Text)
+    neuropace_ecog_ch3_anode = mapped_column(Text)
+    neuropace_ecog_ch4_cathode = mapped_column(Text)
+    neuropace_ecog_ch4_anode = mapped_column(Text)
 
     file_type: type[NEUROPACEHDF5] | None = NEUROPACEHDF5
 

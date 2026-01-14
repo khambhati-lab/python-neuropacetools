@@ -75,7 +75,8 @@ class NEUROPACECDFSContentsComponent(CDFSTimeContentsComponent):
         filename: str
     ) -> dict:
         full_path, rel_path = self.generate_file_path(filename)
-        file = self.data_file_type(full_path)
+        file = self.data_file_type(full_path, mode='r')
+
         return {
             "path": rel_path,
             "shape": file.data.shape, 
@@ -89,7 +90,15 @@ class NEUROPACECDFSContentsComponent(CDFSTimeContentsComponent):
             "neuropace_device_id": int(file.attributes["neuropace_device_id"]),
             "neuropace_ecog_trigger_timestamp": int(file.data.attributes["neuropace_ecog_trigger_timestamp"]),
             "neuropace_ecog_trigger": file.data.attributes["neuropace_ecog_trigger"],
-            "neuropace_ecog_type": file.data.attributes["neuropace_ecog_type"]
+            "neuropace_ecog_type": file.data.attributes["neuropace_ecog_type"],
+            "neuropace_ecog_ch1_cathode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][0][0],
+            "neuropace_ecog_ch1_anode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][0][1],
+            "neuropace_ecog_ch2_cathode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][1][0],
+            "neuropace_ecog_ch2_anode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][1][1],
+            "neuropace_ecog_ch3_cathode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][2][0],
+            "neuropace_ecog_ch3_anode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][2][1],
+            "neuropace_ecog_ch4_cathode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][3][0],
+            "neuropace_ecog_ch4_anode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][3][1]
         }
 
     def create_data_writer(self, **kwargs) -> NEUROPACEHDF5Writer:
