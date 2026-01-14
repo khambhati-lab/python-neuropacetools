@@ -210,8 +210,12 @@ class NEUROPACEHDF5Writer(BaseBlock):
         time_axis[slice_[t_axis]] = nanostamps
         chan_axis[slice_[c_axis]] = channels
         dataset[*slice_] = data
+
+        self.file.attributes["start"] = self.file.time_axis.components["axis"].start_nanostamp
+        self.file.attributes["end"] = self.file.time_axis.components["axis"].end_nanostamp
+
         self.file.flush()
-    
+        
     # IO
     def build_io(
         self,
