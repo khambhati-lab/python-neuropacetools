@@ -17,7 +17,7 @@ from collections.abc import Mapping
 from typing import Any
 
 # Third-Party Packages #
-from hdf5objects.dataset.maps import BaseTimeSeriesMap
+from hdf5objects.dataset.maps import ElectricalSeriesMap
 from hdf5objects.dataset.axes import TimeAxisMap
 from hdf5objects.dataset.axes import LabelAxisMap
 from hdf5objects.dataset.components import TimeSeriesComponent
@@ -25,25 +25,21 @@ from hdf5objects.dataset.components import TimeSeriesComponent
 
 # Definitions #
 # Classes #
-class IEEGSeriesMap(BaseTimeSeriesMap):
+class IEEGSeriesMap(ElectricalSeriesMap):
     """A base outline which defines a neural time series and its methods."""
 
-    default_attribute_names: Mapping[str, str] = BaseTimeSeriesMap.default_attribute_names | {
+    default_attribute_names: Mapping[str, str] = ElectricalSeriesMap.default_attribute_names | {
         "units": "units",
         "neuropace_ecog_type": "neuropace_ecog_type",
         "neuropace_ecog_trigger": "neuropace_ecog_trigger",
         "neuropace_ecog_trigger_timestamp": "neuropace_ecog_trigger_timestamp"
     }
-    default_attributes: Mapping[str, Any] = BaseTimeSeriesMap.default_attributes | {
+    default_attributes: Mapping[str, Any] = ElectricalSeriesMap.default_attributes | {
             "units": "digital_counts",
             "neuropace_ecog_type": "",
             "neuropace_ecog_trigger": "",
             "neuropace_ecog_trigger_timestamp": 0}
     
-    default_axis_maps: list[dict[str, Any], ...] = [
-        {"time_axis": TimeAxisMap()},
-        {"channellabel_axis": LabelAxisMap()}
-    ]
-
-    default_component_types: dict[str, Any] = BaseTimeSeriesMap.default_component_types | {
-            "timeseries": (TimeSeriesComponent, {"scale_name": "time_axis"})}
+    default_axis_maps: list[dict[str, Any], ...] = ElectricalSeriesMap.default_axis_maps
+    
+    default_component_types: dict[str, Any] = ElectricalSeriesMap.default_component_types | {}
