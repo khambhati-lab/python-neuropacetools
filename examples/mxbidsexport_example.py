@@ -23,7 +23,9 @@ def main():
     # Setup #
     # PATHS
     raw_path = Path("./raw_data")
+    raw_path = Path("/home/akhambhati/Holocron/scratch/NeuroPace_XX_51571 EXTERNAL #PHI")
     subject_identifier = "ZZ"
+    subject_identifier = "NeuroPace_XX_51571"
     mxbids_path = Path("./rns_subjects")
 
     ## Get Raw Data Objects
@@ -59,9 +61,14 @@ def main():
 
     # Iterate over iEEG records listed in the catalog
     for cat in catalog:
+        print(cat)
         ## Read the most recent catalog record entry and retrieve iEEG record
-        ieeg_record = neuropaceraw.ieegget(raw_path, cat)
- 
+        #ieeg_record = neuropaceraw.ieegget(raw_path, cat)
+        ieeg_record = neuropaceraw.ieegget(
+            Path("/home/akhambhati/Holocron/scratch/NeuroPace_XX_51571 EXTERNAL #PHI/NeuroPace_XX_51571 Data EXTERNAL #PHI"),
+            cat
+        )
+        
         ## Convert the catalog entry to an hdf5 file
         filename = os.path.splitext(ieeg_record.catalog_entry.filename)[0]
         full_path, _ = cdfs.components["contents"].generate_file_path(filename)
@@ -71,6 +78,7 @@ def main():
             file_remake=False,
             slice_=[None]
         )
+        hdf5writer.teardown()
 
         ## Upsert entry into the cdfs
         entry = cdfs.components["contents"].format_entry(filename) 
@@ -79,4 +87,3 @@ def main():
 # Main #
 if __name__ == '__main__':
     main()
-

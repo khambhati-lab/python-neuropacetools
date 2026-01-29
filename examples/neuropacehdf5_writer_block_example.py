@@ -4,7 +4,7 @@ Create an HDF5 file that contains data for NeuroPace EEG data.
 # Imports #
 # Standard Libraries #
 import os
-import pathlib
+from pathlib import Path
 
 # Third-Party Packages #
 
@@ -15,8 +15,15 @@ from neuropacetools.neuropacehdf5.blocks.neuropacehdf5writer import NEUROPACEHDF
 
 # Main Script #
 ## Read the catalog data
-catalog = neuropaceraw.ieegcat('./Example_ECoG_Catalog.csv')
-ieeg_record = neuropaceraw.ieegget('./', catalog[-1])
+raw_path = Path("/home/akhambhati/Holocron/scratch/NeuroPace_XX_51571 EXTERNAL #PHI")
+subject_identifier = "NeuroPace_XX_51571"
+
+catalog = neuropaceraw.ieegcat(raw_path / Path(f"{subject_identifier}_ECoG_Catalog.csv"))
+ieeg_record = neuropaceraw.ieegget(
+    Path("/home/akhambhati/Holocron/scratch/NeuroPace_XX_51571 EXTERNAL #PHI/NeuroPace_XX_51571 Data EXTERNAL #PHI"),
+    catalog[-1]
+)
+
 print(ieeg_record)
 
 ## Create a file
@@ -46,7 +53,7 @@ print("\n--- Data Attributes ---")
 for k in loaded_file.data.attributes:
     print("  ", k, ": ", loaded_file.data.attributes[k])
 print(loaded_file.data[...])
-print(loaded_file.time_axis[...])
+print([f"{str(ch[0])} - {str(ch[1])}" for ch in loaded_file.data.axes[1]["channellabel_axis"][...]])
 loaded_file.close()
 print("--- NEUROPACEHDF5 Reader Done ---")
 

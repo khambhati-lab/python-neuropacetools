@@ -18,8 +18,8 @@ NEUROPACEHDF5_latest = NEUROPACEHDF5.get_latest_version_class()
 
 # Main Script #
 ## Read the catalog data
-catalog = neuropaceraw.ieegcat('./Example_ECoG_Catalog.csv')
-ieeg_record = neuropaceraw.ieegget('./', catalog[-1])
+catalog = neuropaceraw.ieegcat('./raw_data/ZZ_ECoG_Catalog.csv')
+ieeg_record = neuropaceraw.ieegget('./raw_data', catalog[-1])
 print(ieeg_record)
 
 ## Create a file
@@ -28,6 +28,8 @@ output_file = os.path.splitext(ieeg_record.catalog_entry.filename)[0] + ".h5"
 
 # Construct
 nph5_file = NEUROPACEHDF5_latest(file=output_file, mode="w", create=True, construct=True)
+
+print(nph5_file.data)
 
 # Fill out attributes
 nph5_file.attributes["start_id"] = ieeg_record.timestamps[0]
