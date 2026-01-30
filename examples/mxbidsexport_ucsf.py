@@ -113,52 +113,49 @@ if __name__ == '__main__':
     npe_id = registry[9]["npe_code"]
     date_of_birth = registry[9]["date_of_birth"]
 
+    mxbids_subject = _get_mxbids_subject(
+        npe_id,
+        OUTPUT_PATH
+    )
+
     catalog = _get_catalog(
         source,
         pdms_id,
         date_of_birth
     )
 
-    ieeg_record = _get_ieeg_record(
-        catalog[0],
-    )
+    for cat in catalog:
+        print(cat)
+        ieeg_record = _get_ieeg_record(cat)
 
-    #######
-    #######
-    mxbids_subject = _get_mxbids_subject(
-        npe_id,
-        OUTPUT_PATH
-    )
+        mxbids_session = _get_mxbids_session(
+            mxbids_subject,
+            ieeg_record.catalog_entry.device_id
+        )
 
-    mxbids_session = _get_mxbids_session(
-        mxbids_subject,
-        ieeg_record.catalog_entry.device_id
-    )
+        # Create cdfs object
+        cdfs = mxbids_session.modalities["ieeg"].components["cdfs"].require_cdfs()
+        cdfs.name = mxbids_subject.name if cdfs.name is None else cdfs.name
 
-    # Create cdfs object
-    cdfs = mxbids_session.modalities["ieeg"].components["cdfs"].require_cdfs()
-    cdfs.name = mxbids_subject.name if cdfs.name is None else cdfs.name
+        # create hdf5writer and contentupdater
+        hdf5writer = cdfs.components["contents"].create_data_writer()
+        contentsupdater = cdfs.components["contents"].create_contents_updater(
+            will_proxy=False,
+            init_setup=True
+        )
+        #######
+        #######
 
-    # create hdf5writer and contentupdater
-    hdf5writer = cdfs.components["contents"].create_data_writer()
-    contentsupdater = cdfs.components["contents"].create_contents_updater(
-        will_proxy=False,
-        init_setup=True
-    )
-    #######
-    #######
+        ## Convert the catalog entry to an hdf5 file
+        filename = os.path.splitext(ieeg_record.catalog_entry.filename)[0]
+        full_path, _ = cdfs.components["contents"].generate_file_path(filename)
+        hdf5writer.evaluate(
+            ieeg_record,
+            full_path,
+            file_remake=False,
+            slice_=[None]
+        )
 
-    ## Convert the catalog entry to an hdf5 file
-    filename = os.path.splitext(ieeg_record.catalog_entry.filename)[0]
-    full_path, _ = cdfs.components["contents"].generate_file_path(filename)
-    hdf5writer.evaluate(
-        ieeg_record,
-        full_path,
-        file_remake=False,
-        slice_=[None]
-    )
-    hdf5writer.teardown()
-
-    ## Upsert entry into the cdfs
-    entry = cdfs.components["contents"].format_entry(filename) 
-    contentsupdater.evaluate(entry=entry)
+        ## Upsert entry into the cdfs
+        entry = cdfs.components["contents"].format_entry(filename) 
+        contentsupdater.evaluate(entry=entry)
