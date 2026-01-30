@@ -52,6 +52,7 @@ def ieegget(
     n_chan = int(record.waveform_count)
     n_sample = int(record.ecog_length * record.sampling_rate)
     data_arr = ieegdat(path, n_chan, n_sample)
+    n_sample, n_chan = data_arr.shape
 
     # Construct a timestamp vector
     td_vec = np.array([nanostamp(i/record.sampling_rate) for i in range(n_sample)])
