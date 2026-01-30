@@ -46,7 +46,7 @@ def _clean_header(s: str, sub: str='_', casing: str | None='lower') -> str:
 
     return s
 
-def ieegcat(path: str | pathlib.Path) -> list[namedtuple]:
+def ieegcat(path: str | pathlib.Path, new_reference_timestamp: str) -> list[namedtuple]:
     """Read Category CSV file.
 
     Args:
@@ -71,6 +71,6 @@ def ieegcat(path: str | pathlib.Path) -> list[namedtuple]:
         for row in reader:
             # Create a namedtuple instance from the current row
             # Ensure the number of elements in 'row' matches the namedtuple fields
-            data_records.append(CatalogEntry.from_csv(_CatalogEntry(*row)))
+            data_records.append(CatalogEntry.from_csv(_CatalogEntry(*row), new_reference_timestamp))
 
     return data_records

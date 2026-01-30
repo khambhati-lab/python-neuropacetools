@@ -53,7 +53,7 @@ class CatalogEntry(NamedTuple):
     timestamp_tz: tzinfo
 
     @classmethod
-    def from_csv(cls, _CatalogEntry):
+    def from_csv(cls, _CatalogEntry, new_reference_timestamp=None):
 
         # Convert to TZ-Aware
         ts = datetime.fromisoformat(_CatalogEntry.timestamp)
@@ -68,6 +68,15 @@ class CatalogEntry(NamedTuple):
         ts_start = nanostamp(ts.replace(tzinfo=fixed_tz))
         ts_trigger = nanostamp(raw_local_ts.replace(tzinfo=fixed_tz))
 
+        ts_start = (ts_start - nanostamp(offset_td))
+        ts_trigger = (ts_trigger - nanostamp(offset_td))
+
+        # Date shift the timestamps based on new reference
+        if new_reference_timestamp is not None:
+            reref_ts = nanostamp(datetime.fromisoformat(new_reference_timestamp))
+            ts_start = ts_start - reref_ts
+            ts_trigger = ts_trigger - reref_ts
+            
         return cls(
             str(_CatalogEntry.initials),
             int(_CatalogEntry.patient_id),
