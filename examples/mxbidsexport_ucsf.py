@@ -20,7 +20,12 @@ from neuropacetools.neuropacemxbids import NEUROPACEMXBIDSSession
 # Definitions #
 ROOT_PATH = Path("/mnt/epilepsy_neuropace")
 REGISTRY_PATH = ROOT_PATH / Path("registry") / Path("pdms_to_npe.csv")
-OUTPUT_PATH = "/home/akhambhati/Holocron/scratch/epilepsy_neuropace"
+OUTPUT_PATH = Path("/home/akhambhati/Holocron/remotes/hopfield/epilepsy_neuropace")
+MANIFEST_PATH = OUTPUT_PATH / Path("MANIFEST.txt")
+if not MANIFEST_PATH.exists():
+    f = open(MANIFEST_PATH, "w+")
+    f.close()
+
 
 # Functions #
 def _get_registry(REGISTRY_PATH=REGISTRY_PATH):
@@ -56,10 +61,11 @@ def _get_catalog(
 
 
 def _get_ieeg_record(
+    source,
     catalog_entry,
     ROOT_PATH=ROOT_PATH
 ):
-    file_path = [*ROOT_PATH.glob(f"*/*/*/{catalog_entry.filename}")]
+    file_path = [*ROOT_PATH.glob(f"{source}/*/*/{catalog_entry.filename}")]
 
     if len(file_path) > 1:
         print(f"Found {len(file_path)} DAT files for catalog entry.")
@@ -69,7 +75,7 @@ def _get_ieeg_record(
         return None
     else:
         file_path = file_path[0]
-
+    
     return neuropaceraw.ieegget(
         file_path.parent,
         catalog_entry
@@ -102,16 +108,44 @@ def _get_mxbids_session(
     return session
 
 
-# Main #
-if __name__ == '__main__':
-    source = "current"
+def _check_manifest(
+    file_names, 
+    MANIFEST_PATH=MANIFEST_PATH
+):
+    in_manifest = [False] * len(file_names)
+    with open(MANIFEST_PATH, "r") as f:
+        for line in f:
+            adjusted_line = line.split("\n")[0]
+            if adjusted_line in file_names:
+                in_manifest[file_names.index(adjusted_line)] = True
+    return in_manifest
 
-    registry = _get_registry()
-    print(registry[9])
 
-    pdms_id = registry[9]["pdms_id"]
-    npe_id = registry[9]["npe_code"]
-    date_of_birth = registry[9]["date_of_birth"]
+def _regen_manifest(
+    OUTPUT_PATH=OUTPUT_PATH,
+    MANIFEST_PATH=MANIFEST_PATH
+):
+    converted_h5 = [*OUTPUT_PATH.rglob("*.h5")]
+    with open(MANIFEST_PATH, "w") as f:
+        for line in converted_h5:
+            f.write(f"{line.resolve().as_posix().split('/')[-1].split('.')[0] + '.dat'}\n")
+
+
+def _append_manifest(
+    file_name, 
+    MANIFEST_PATH=MANIFEST_PATH
+):
+    with open(MANIFEST_PATH, "a+") as f:
+        f.write(f"{file_name}\n")
+
+
+def main(inputs):
+    registry_entry = inputs["registry_entry"]
+    source = inputs["source"]
+    
+    pdms_id = registry_entry["pdms_id"]
+    npe_id = registry_entry["npe_code"]
+    date_of_birth = registry_entry["date_of_birth"]
 
     mxbids_subject = _get_mxbids_subject(
         npe_id,
@@ -124,9 +158,13 @@ if __name__ == '__main__':
         date_of_birth
     )
 
-    for cat in catalog:
+    in_manifest = _check_manifest([cat.filename for cat in catalog])
+    for cat_i, cat in enumerate(catalog):
+        if in_manifest[cat_i]:
+            continue
         print(cat)
-        ieeg_record = _get_ieeg_record(cat)
+
+        ieeg_record = _get_ieeg_record(source, cat)
 
         mxbids_session = _get_mxbids_session(
             mxbids_subject,
@@ -159,3 +197,21 @@ if __name__ == '__main__':
         ## Upsert entry into the cdfs
         entry = cdfs.components["contents"].format_entry(filename) 
         contentsupdater.evaluate(entry=entry)
+
+        _append_manifest(cat.filename)
+
+
+# Main #
+if __name__ == '__main__':
+    from multiprocessing import Pool
+    pool = Pool(32)
+
+    registry = _get_registry()
+    inputs = []
+    for source in ["v20190415", "current"]:
+        for registry_entry in registry:
+            inputs.append(
+                {"registry_entry": registry_entry,
+                 "source": source})
+
+    pool.map(main, inputs)
