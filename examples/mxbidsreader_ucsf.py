@@ -23,9 +23,8 @@ def main():
 
     # Setup #
     # PATHS
-    raw_path = Path("/home/akhambhati/Holocron/scratch/epilepsy_neuropace")
     subject_identifier = "NPE0010"
-    mxbids_path = Path("/home/akhambhati/Holocron/scratch/epilepsy_neuropace")
+    mxbids_path = Path("/home/akhambhati/Holocron/remotes/hopfield/epilepsy_neuropace")
 
     # Create MXBIDS Subject
     mxbids_subject = Subject(
@@ -41,14 +40,19 @@ def main():
 
     #proxy = cdfs.components["contents"].create_contents_proxy()
     proxy = cdfs.components["contents"].require_contents_proxy()
+    print(dir(proxy))
 
+    for ii, p in enumerate(proxy.flat_iterator()):
+        print(ii)
+        print(p.get_data()[...].shape)
+        print(p.get_nanostamps()[...].shape)
+        p.close()
+    """
     T1 = proxy.start_datetime
     T2 = T1 + datetime.timedelta(days=7)
     stream_ecog = proxy.find_data_slice(T1, T2, approx=True, tails=True)
     print(stream_ecog)
-    print(stream_ecog.axis[...]) 
-    print(stream_ecog.data.shape)
-    print(proxy.get_tzinfo())
+    """
 
 # Main #
 if __name__ == '__main__':

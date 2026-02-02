@@ -15,13 +15,15 @@ from mxbids import Subject
 from neuropacetools import neuropaceraw
 from neuropacetools.neuropacecdfs import NEUROPACECDFS
 from neuropacetools.neuropacecdfs.blocks import NEUROPACECDFSContentsUpdater
+from neuropacetools.neuropacehdf5.fileobjects import NEUROPACEHDF5
 from neuropacetools.neuropacemxbids import NEUROPACEMXBIDSSession
+
 
 # Definitions #
 ROOT_PATH = Path("/mnt/epilepsy_neuropace")
 REGISTRY_PATH = ROOT_PATH / Path("registry") / Path("pdms_to_npe.csv")
 OUTPUT_PATH = Path("/home/akhambhati/Holocron/remotes/hopfield/epilepsy_neuropace")
-MANIFEST_PATH = OUTPUT_PATH / Path("MANIFEST.txt")
+MANIFEST_PATH = OUTPUT_PATH / Path("MANIFEST_NEW.txt")
 if not MANIFEST_PATH.exists():
     f = open(MANIFEST_PATH, "w+")
     f.close()
@@ -127,8 +129,15 @@ def _regen_manifest(
 ):
     converted_h5 = [*OUTPUT_PATH.rglob("*.h5")]
     with open(MANIFEST_PATH, "w") as f:
-        for line in converted_h5:
-            f.write(f"{line.resolve().as_posix().split('/')[-1].split('.')[0] + '.dat'}\n")
+        for ii, line in enumerate(converted_h5):
+            print(ii)
+            try:
+                loaded_file = NEUROPACEHDF5(file=line, mode="r")
+                f.write(f"{line.resolve().as_posix().split('/')[-1].split('.')[0] + '.dat'}\n")
+                loaded_file.close()
+            except Exception as E:
+                print(E)
+                continue
 
 
 def _append_manifest(
@@ -162,9 +171,12 @@ def main(inputs):
     for cat_i, cat in enumerate(catalog):
         if in_manifest[cat_i]:
             continue
-        print(cat)
 
         ieeg_record = _get_ieeg_record(source, cat)
+        if ieeg_record is None:
+            print(cat)
+            print("ieeg_record is None")
+            continue
 
         mxbids_session = _get_mxbids_session(
             mxbids_subject,
@@ -187,12 +199,22 @@ def main(inputs):
         ## Convert the catalog entry to an hdf5 file
         filename = os.path.splitext(ieeg_record.catalog_entry.filename)[0]
         full_path, _ = cdfs.components["contents"].generate_file_path(filename)
-        hdf5writer.evaluate(
-            ieeg_record,
-            full_path,
-            file_remake=False,
-            slice_=[None]
-        )
+       
+        try:
+            hdf5writer.evaluate(
+                ieeg_record,
+                full_path,
+                file_remake=False,
+                slice_=[None]
+            )
+        except Exception as E:
+            print(E)
+            hdf5writer.evaluate(
+                ieeg_record,
+                full_path,
+                file_remake=True,
+                slice_=[None]
+            )
 
         ## Upsert entry into the cdfs
         entry = cdfs.components["contents"].format_entry(filename) 
@@ -206,12 +228,19 @@ if __name__ == '__main__':
     from multiprocessing import Pool
     pool = Pool(32)
 
+    import glob
     registry = _get_registry()
     inputs = []
-    for source in ["v20190415", "current"]:
+    for source in ["current"]: #["v20190415", "current"]:
         for registry_entry in registry:
+            h5 = glob.glob(f"/home/akhambhati/Holocron/remotes/hopfield/epilepsy_neuropace/sub-{registry_entry['npe_code']}/*/ieeg/task-clips/*.h5")
+            dat = glob.glob(f"/mnt/epilepsy_neuropace/{source}/UCSF_*_{registry_entry['pdms_id']} EXTERNAL #PHI/*/*.dat")
+            if len(dat) <= len(h5):
+                continue
+            print(source, registry_entry["npe_code"], len(dat) - len(h5), len(dat), len(h5))
             inputs.append(
                 {"registry_entry": registry_entry,
                  "source": source})
-
     pool.map(main, inputs)
+    
+    #_regen_manifest()
