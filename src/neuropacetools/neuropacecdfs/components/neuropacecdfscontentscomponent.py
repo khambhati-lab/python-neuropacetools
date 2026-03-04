@@ -77,6 +77,12 @@ class NEUROPACECDFSContentsComponent(CDFSTimeContentsComponent):
         full_path, rel_path = self.generate_file_path(filename)
         file = self.data_file_type(full_path, mode='r')
 
+        chlbl_axis = file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"]
+        n_chlbl = len(chlbl_axis)
+       
+        
+
+
         return {
             "path": rel_path,
             "shape": file.data.shape, 
@@ -91,14 +97,14 @@ class NEUROPACECDFSContentsComponent(CDFSTimeContentsComponent):
             "neuropace_ecog_trigger_timestamp": int(file.data.attributes["neuropace_ecog_trigger_timestamp"]),
             "neuropace_ecog_trigger": file.data.attributes["neuropace_ecog_trigger"],
             "neuropace_ecog_type": file.data.attributes["neuropace_ecog_type"],
-            "neuropace_ecog_ch1_cathode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][0][0],
-            "neuropace_ecog_ch1_anode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][0][1],
-            "neuropace_ecog_ch2_cathode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][1][0],
-            "neuropace_ecog_ch2_anode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][1][1],
-            "neuropace_ecog_ch3_cathode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][2][0],
-            "neuropace_ecog_ch3_anode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][2][1],
-            "neuropace_ecog_ch4_cathode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][3][0],
-            "neuropace_ecog_ch4_anode":  file.data.axes[file.data.attributes['c_axis']]["channellabel_axis"][3][1]
+            "neuropace_ecog_ch1_cathode":  chlbl_axis[0][0] if 0 < n_chlbl else "None",
+            "neuropace_ecog_ch1_anode":  chlbl_axis[0][1] if 0 < n_chlbl else "None",
+            "neuropace_ecog_ch2_cathode":  chlbl_axis[1][0] if 1 < n_chlbl else "None",
+            "neuropace_ecog_ch2_anode":  chlbl_axis[1][1] if 1 < n_chlbl else "None",
+            "neuropace_ecog_ch3_cathode":  chlbl_axis[2][0] if 2 < n_chlbl else "None",
+            "neuropace_ecog_ch3_anode":  chlbl_axis[2][1] if 2 < n_chlbl else "None",
+            "neuropace_ecog_ch4_cathode":  chlbl_axis[3][0] if 3 < n_chlbl else "None",
+            "neuropace_ecog_ch4_anode":  chlbl_axis[3][1] if 3 < n_chlbl else "None"
         }
 
     def create_data_writer(self, **kwargs) -> NEUROPACEHDF5Writer:
