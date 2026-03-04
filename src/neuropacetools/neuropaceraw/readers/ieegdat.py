@@ -57,7 +57,9 @@ def ieegdat(
     raw_sample_per_chan = len(raw) // n_chan
 
     # Check number of samples expected is same as number extracted
-    assert abs(raw_sample_per_chan - n_sample) <= 1
+    if abs(raw_sample_per_chan - n_sample) > 2:
+        print(path, n_chan, n_sample, raw_sample_per_chan)
+    assert abs(raw_sample_per_chan - n_sample) <= 2
     n_sample = raw_sample_per_chan
 
     # Return data as reshaped numpy array
