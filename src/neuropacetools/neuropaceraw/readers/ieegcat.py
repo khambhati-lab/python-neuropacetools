@@ -71,6 +71,9 @@ def ieegcat(path: str | pathlib.Path, new_reference_timestamp: str) -> list[name
         for row in reader:
             # Create a namedtuple instance from the current row
             # Ensure the number of elements in 'row' matches the namedtuple fields
-            data_records.append(CatalogEntry.from_csv(_CatalogEntry(*row), new_reference_timestamp))
+            try:
+                data_records.append(CatalogEntry.from_csv(_CatalogEntry(*row), new_reference_timestamp))
+            except:
+                print(f"Incorrectly formatted record, skipping: {row}")
 
     return data_records
