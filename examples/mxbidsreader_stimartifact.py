@@ -33,6 +33,8 @@ def main(inputs):
     # Setup #
     # PATHS
     subject_identifier = inputs["subject_identifier"]
+    session_identifier = inputs["session_identifier"]
+
 
     # Create MXBIDS Subject
     mxbids_subject = Subject(
@@ -42,33 +44,45 @@ def main(inputs):
         load_sessions=True,
         load_modalities=True)
 
-    for session_key in mxbids_subject.sessions.keys():
-        mxbids_session = mxbids_subject.sessions[session_key]
-        cdfs = mxbids_session.modalities["ieeg"].components["cdfs"].get_cdfs()
-        proxy = cdfs.components["contents"].require_contents_proxy()
-        _ =  cdfs.components["contents"].contents_table.create_session()
+    mxbids_session = mxbids_subject.sessions[session_identifier]
+    cdfs = mxbids_session.modalities["ieeg"].components["cdfs"].get_cdfs()
+    proxy = cdfs.components["contents"].require_contents_proxy()
+    _ =  cdfs.components["contents"].contents_table.create_session()
 
-        artifacts_manifest_fn = ROOT_PATH / Path(f"sub-{mxbids_subject.name}_{session_key}_MANIFEST.csv")
-        with open(artifacts_manifest_fn, "a+") as file:
+    artifacts_manifest_fn = ROOT_PATH / Path(f"sub-{mxbids_subject.name}_{session_identifier}_MANIFEST.csv")
+    with open(artifacts_manifest_fn, "w") as file:
 
-            for ii, p in enumerate(proxy.flat_iterator()):
+        for ii, p in enumerate(proxy.flat_iterator()):
+            try:
+                print(ii)
                 data = p.get_data()
                 ts = p.get_nanostamps()
+                data = data[...].mean(axis=1)[:, None]
                 artifacts = stimartifact.detect_stim_artifacts(
                     signalmat=data,
                     params={
                         "NUMCHAN": data.shape[1],
-                        "MIN_ARTIFACT_LENGTH": 10,
+                        "MIN_ARTIFACT_LENGTH": 25,
                         "POST_STIM_BUFFER": 100
                     }
-                )[0]
-                p.close()
+                )[1]
                 
                 for artifact in artifacts:
                     file.write(f"{ts[artifact[0]]},{ts[artifact[1]-1]}\n")
+            except Exception as E:
+                print(f"Error: {artifacts_manifest_fn} - {ii} - {E}")
+                continue
+    proxy.close()
+    
 
 # Main #
 if __name__ == '__main__':
-    inputs = [{"subject_identifier": "NPE0010"}]
-    main(inputs[-1])
+    subject_session_paths = [*MXBIDS_PATH.glob("sub-*/ses-*")]
+    inputs = [{
+        "subject_identifier": path.parts[-2].split("sub-")[-1],
+        "session_identifier": path.parts[-1].split("ses-")[-1]
+    } for path in subject_session_paths]
 
+    from multiprocessing import Pool
+    pool = Pool(64)
+    pool.map(main, inputs)

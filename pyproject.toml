@@ -43,7 +43,12 @@ mxbids = { git = "ssh://git@github.com/AnthonyTechnologies/python-mxbids.git", b
 
 [dependency-groups]
 dev = [
+    "ipykernel>=7.2.0",
     "ipython>=9.4.0",
+    "matplotlib>=3.10.8",
+    "scikit-learn>=1.8.0",
+    "seaborn>=0.13.2",
+    "umap-learn>=0.5.11",
 ]
 
 [build-system]
